@@ -24,7 +24,7 @@
         .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; margin-top: -15px; }
         .metric-card { background: var(--card-bg); padding: 16px; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .metric-card .title { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-        .metric-card .value { font-size: 1.6rem; font-weight: 700; color: var(--brand-light); }
+        .metric-card .value { font-size: 1.4rem; font-weight: 700; color: var(--brand-light); }
         
         .section-title { font-size: 1.05rem; font-weight: 600; padding: 5px 20px; margin: 10px 0 5px 0; display: flex; justify-content: space-between; align-items: center; }
         .content-stack { padding: 0 20px; }
@@ -63,8 +63,8 @@
 
     <div class="metrics-grid">
         <div class="metric-card">
-            <span class="title">Task Score</span>
-            <span class="value" id="taskScoreVal">0 pts</span>
+            <span class="title">Active Status</span>
+            <span class="value" id="taskScoreVal">Nominal</span>
         </div>
         <div class="metric-card">
             <span class="title">Syllabus Tracked</span>
@@ -73,21 +73,20 @@
     </div>
 
     <div class="content-stack">
-        <!-- NOTIFICATION ALERT BUTTON -->
         <div class="alert-banner" id="systemAlertBanner">
-            ✨ <strong>Gemini AI Active:</strong> Ask questions on B.Tech syllabus, coding, general science, math, or creative writing!
+            ✨ <strong>Gemini AI Active:</strong> Ask questions on B.Tech syllabus, coding, engineering science, or semester timelines!
         </div>
         <button onclick="enableDailyMobileAlerts()" style="background: var(--accent-success); margin-bottom: 20px;">Enable Mobile Daily Auto-Alerts</button>
 
-        <!-- ADVANCED GEMINI-STYLE AI MENTOR -->
+        <!-- MENTOR AI -->
         <div class="section-title">✨ Gemini Multi-Purpose AI Assistant</div>
         <div class="action-card" style="border-color: var(--gemini-purple);">
-            <textarea id="aiInput" rows="3" placeholder="Ask anything: 'Explain pointers', 'Python quicksort code', 'Newton laws', 'How to write a resume?'..."></textarea>
+            <textarea id="aiInput" rows="3" placeholder="Ask anything: 'Explain pointers', 'Python loops', 'Newton laws', 'ECE signals'..."></textarea>
             <button onclick="triggerGeminiAI()" style="background: linear-gradient(135deg, var(--gemini-purple), var(--gemini-pink));">Ask Gemini AI</button>
             <div id="aiTerminalView" class="ai-terminal"></div>
         </div>
 
-        <!-- STUDENT PROFILE CONFIG -->
+        <!-- PROFILE CONFIG -->
         <div class="section-title">Student Profile Configuration</div>
         <div class="action-card">
             <input type="text" id="setProfileName" placeholder="Enter Full Name">
@@ -114,24 +113,18 @@
                 <option value="8">4th Year - 8th Semester</option>
             </select>
             
-            <button onclick="commitProfileData()">Save & Initialize Hub</button>
+            <button onclick="commitProfileData()">Save Profile & Synchronize Hub</button>
         </div>
 
-        <!-- SYLLABUS & DAILY SCHEDULE TRACKER -->
-        <div class="section-title">Detailed Unit Syllabus & Daily Units</div>
+        <!-- SYLLABUS TRACKER -->
+        <div class="section-title">Semester Syllabus & Unit Tracker</div>
         <div class="action-card" style="border-color: var(--accent-warn);">
             <div class="progress-track"><div id="progressFillBar" class="progress-fill"></div></div>
             <div id="dynamicSyllabusBox"></div>
         </div>
 
-        <!-- BRANCH-WISE TASKS WITH SCORING -->
-        <div class="section-title">Branch Tasks & Scoring Matrix</div>
-        <div class="action-card" style="border-color: var(--brand-light);">
-            <div id="taskListContainer"></div>
-        </div>
-
-        <!-- AUTOMATIC COUNTDOWN MATRIX -->
-        <div class="section-title">Automatic Exam Countdown Matrix</div>
+        <!-- COUNTDOWN -->
+        <div class="section-title">Automatic Countdown Matrix</div>
         <div class="action-card" style="border-color: var(--accent-danger);">
             <label style="font-size: 0.85rem; color: var(--text-muted);">📅 Current Semester Classes Start Date</label>
             <input type="date" id="semStart" onchange="compileLiveDailyDeadlines()">
@@ -141,236 +134,14 @@
 
     <div class="nav-bar">
         <div class="nav-item active"><span>🏠</span>Home</div>
-        <div class="nav-item" onclick="window.scrollTo({top: 400, behavior: 'smooth'})"><span>✨</span>Gemini AI</div>
-        <div class="nav-item" onclick="window.scrollTo({top: 1300, behavior: 'smooth'})"><span>📝</span>Tasks</div>
-        <div class="nav-item" onclick="window.scrollTo({top: 2100, behavior: 'smooth'})"><span>📅</span>Schedule</div>
+        <div class="nav-item"><span>📅</span>Schedule</div>
+        <div class="nav-item"><span>📝</span>Tasks</div>
+        <div class="nav-item"><span>🧠</span>AI Coach</div>
     </div>
 </div>
 
 <script>
-    // Comprehensive Multi-Branch Curriculum Database
-    const curriculumDB = {
-        CSE: { name: "Computer Science", subjects: ["Data Structures & Algorithms", "Operating Systems", "Database Management Systems", "Computer Networks"] },
-        ECE: { name: "Electronics & Comm", subjects: ["Electronic Devices & Circuits", "Signals & Systems", "Digital Logic Design", "Electromagnetic Waves"] },
-        EEE: { name: "Electrical & Electronics", subjects: ["Electrical Circuit Analysis", "DC Machines & Transformers", "Control Systems", "Power Systems-I"] },
-        MECH: { name: "Mechanical Engineering", subjects: ["Engineering Thermodynamics", "Kinematics of Machinery", "Fluid Mechanics", "Manufacturing Technology"] },
-        CIVIL: { name: "Civil Engineering", subjects: ["Strength of Materials", "Surveying & Geomatics", "Fluid Mechanics for Civil", "Structural Analysis-I"] }
-    };
+    let dailyPushIntervalLoop;
 
-    // Branch-Specific Tasks Matrix with Scoring
-    const tasksDB = {
-        CSE: [
-            { id: 't1', title: 'Implement Binary Search Tree in C++', score: 20 },
-            { id: 't2', title: 'Write SQL queries for normalization & joins', score: 15 },
-            { id: 't3', title: 'Simulate CPU Scheduling (FCFS / Round Robin)', score: 25 }
-        ],
-        ECE: [
-            { id: 't1', title: 'Design RC Coupled Amplifier in Multisim', score: 20 },
-            { id: 't2', title: 'Plot Fourier Transform of Sine Wave using MATLAB', score: 25 },
-            { id: 't3', title: 'Implement Logic Gates using Verilog HDL', score: 15 }
-        ],
-        EEE: [
-            { id: 't1', title: 'Calculate efficiency of Single Phase Transformer', score: 20 },
-            { id: 't2', title: 'Analyze Bode Plot for Control System stability', score: 25 },
-            { id: 't3', title: 'Solve Mesh & Nodal equations for AC circuits', score: 15 }
-        ],
-        MECH: [
-            { id: 't1', title: 'Solve 1st Law of Thermodynamics Numerical Problems', score: 20 },
-            { id: 't2', title: 'Draft Velocity & Acceleration diagrams for Slider-Crank', score: 25 },
-            { id: 't3', title: 'Calculate Reynolds Number & Friction Factor', score: 15 }
-        ],
-        CIVIL: [
-            { id: 't1', title: 'Draw Bending Moment and Shear Force Diagrams', score: 25 },
-            { id: 't2', title: 'Conduct Theodolite Survey calculation sheet', score: 20 },
-            { id: 't3', title: 'Compute hydrostatic pressure on curved surfaces', score: 15 }
-        ]
-    };
-
-    let userState = {
-        name: "Student Scholar",
-        roll: "BTECH2026",
-        branch: "CSE",
-        semester: "1",
-        completedUnits: {},
-        completedTasks: {},
-        totalScore: 0
-    };
-
-    function loadState() {
-        const saved = localStorage.getItem('gemini_btech_state');
-        if (saved) {
-            userState = JSON.parse(saved);
-            document.getElementById('setProfileName').value = userState.name;
-            document.getElementById('setRollNo').value = userState.roll;
-            document.getElementById('setBranch').value = userState.branch;
-            document.getElementById('setSemester').value = userState.semester;
-        }
-        if (localStorage.getItem('savedStartDate')) {
-            document.getElementById('semStart').value = localStorage.getItem('savedStartDate');
-            compileLiveDailyDeadlines();
-        }
-        renderHubData();
-    }
-
-    function commitProfileData() {
-        userState.name = document.getElementById('setProfileName').value || "Student Scholar";
-        userState.roll = document.getElementById('setRollNo').value || "ID-001";
-        userState.branch = document.getElementById('setBranch').value;
-        userState.semester = document.getElementById('setSemester').value;
-        
-        localStorage.setItem('gemini_btech_state', JSON.stringify(userState));
-        renderHubData();
-        alert('🚀 Profile & Curriculum Matrix updated successfully!');
-    }
-
-    function renderHubData() {
-        document.getElementById('displayProfileName').innerText = `${userState.name} (${userState.roll})`;
-        document.getElementById('displaySemesterHeading').innerText = `Year ${Math.ceil(userState.semester/2)} - Semester ${userState.semester} (${userState.branch})`;
-        document.getElementById('avatarIcon').innerText = userState.name.charAt(0).toUpperCase();
-        
-        renderSyllabusData();
-        renderTasksData();
-    }
-
-    function renderSyllabusData() {
-        const branch = document.getElementById('setBranch').value;
-        const subjects = curriculumDB[branch].subjects;
-        let htmlStr = '';
-        let totalUnitsCount = subjects.length * 5;
-        let checkedCount = 0;
-
-        subjects.forEach((subj, sIdx) => {
-            htmlStr += `<div class="subject-row"><strong>📘 ${subj}</strong>`;
-            for(let u=1; u<=5; u++) {
-                let key = `${branch}_s${sIdx}_u${u}`;
-                let isChecked = userState.completedUnits[key] ? 'checked' : '';
-                if(isChecked) checkedCount++;
-                
-                htmlStr += `
-                    <div style="margin-top: 6px;">
-                        <label class="checkbox-label">
-                            <input type="checkbox" ${isChecked} onchange="toggleUnit('${key}')" style="width:auto; margin:0;">
-                            Unit ${u}: Daily Target & Concepts
-                        </label>
-                        <div class="unit-details">💡 <em>Daily Goal:</em> Dedicate 45 mins to read core definitions, formulas, and code/numerical problems for Unit ${u}.</div>
-                    </div>
-                `;
-            }
-            htmlStr += `</div>`;
-        });
-
-        document.getElementById('dynamicSyllabusBox').innerHTML = htmlStr;
-        let percent = Math.round((checkedCount / totalUnitsCount) * 100);
-        document.getElementById('progressVal').innerText = `${percent}%`;
-        document.getElementById('progressFillBar').style.width = `${percent}%`;
-    }
-
-    function toggleUnit(key) {
-        userState.completedUnits[key] = !userState.completedUnits[key];
-        localStorage.setItem('gemini_btech_state', JSON.stringify(userState));
-        renderSyllabusData();
-    }
-
-    function renderTasksData() {
-        const branch = document.getElementById('setBranch').value;
-        const tasks = tasksDB[branch];
-        let tHtml = '';
-        let currentScore = 0;
-
-        tasks.forEach(task => {
-            let isDone = userState.completedTasks[task.id];
-            if(isDone) currentScore += task.score;
-
-            tHtml += `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-dark); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: bold;">${task.title}</div>
-                        <div style="font-size: 0.75rem; color: var(--accent-warn);">⭐ Score: +${task.score} pts</div>
-                    </div>
-                    <button onclick="toggleTask('${task.id}', ${task.score})" style="width: auto; padding: 6px 12px; background: ${isDone ? 'var(--accent-success)' : 'var(--brand-blue)'}">${isDone ? 'Completed ✓' : 'Finish'}</button>
-                </div>
-            `;
-        });
-
-        document.getElementById('taskListContainer').innerHTML = tHtml;
-        document.getElementById('taskScoreVal').innerText = `${currentScore} pts`;
-    }
-
-    function toggleTask(taskId, pts) {
-        userState.completedTasks[taskId] = !userState.completedTasks[taskId];
-        localStorage.setItem('gemini_btech_state', JSON.stringify(userState));
-        renderTasksData();
-    }
-
-    function enableDailyMobileAlerts() {
-        Notification.requestPermission().then(res => {
-            if (res === 'granted') {
-                document.getElementById('systemAlertBanner').innerHTML = "🔔 <strong>Status:</strong> Active! Daily notifications enabled.";
-                new Notification("Gemini AI Coach", { body: "Daily notification matrix activated successfully!" });
-                alert("🚀 Daily notifications configured successfully!");
-            } else {
-                alert("Permission denied for push alerts.");
-            }
-        });
-    }
-
-    function compileLiveDailyDeadlines() {
-        const val = document.getElementById('semStart').value;
-        if (!val) return;
-        localStorage.setItem('savedStartDate', val);
-
-        const start = new Date(val);
-        const today = new Date();
-        const mid1Date = new Date(start.getTime() + (55 * 24 * 60 * 60 * 1000));
-        const endSemDate = new Date(start.getTime() + (110 * 24 * 60 * 60 * 1000));
-
-        const daysToMid1 = Math.ceil((mid1Date - today) / (1000 * 60 * 60 * 24));
-        const daysToEnd = Math.ceil((endSemDate - today) / (1000 * 60 * 60 * 24));
-
-        let msg = "";
-        if (daysToMid1 > 0) {
-            msg = `⏳ <strong>Mid-1 Exams:</strong> In ${daysToMid1} Days.<br>🎯 <em>Daily Schedule:</em> Complete Units 1 & 2 thoroughly. Practice 2 problems daily.`;
-        } else if (daysToEnd > 0) {
-            msg = `⚡ <strong>End-Semester Exams:</strong> In ${daysToEnd} Days.<br>🎯 <em>Daily Schedule:</em> Revise Units 3, 4, and 5 with branch-wise tasks.`;
-        } else {
-            msg = `🏁 Semester schedule cycle completed. Prepare for next semester!`;
-        }
-
-        document.getElementById('schedulerOutput').innerHTML = msg;
-    }
-
-    // Gemini-Style Universal AI Engine (Handles any query across subjects, coding, general topics)
-    function triggerGeminiAI() {
-        const query = document.getElementById('aiInput').value.toLowerCase().trim();
-        const term = document.getElementById('aiTerminalView');
-        term.style.display = 'block';
-
-        if (!query) {
-            term.innerText = "✨ [Gemini AI]: Please ask a question. I can assist you with coding, engineering subjects, general knowledge, math, resume writing, and more!";
-            return;
-        }
-
-        let response = "";
-        
-        // Context-aware smart multi-domain responses mimicking Google Gemini
-        if (query.includes('pointer') || query.includes('array') || query.includes('c++') || query.includes('python') || query.includes('code')) {
-            response = `✨ [Gemini Code Assistant]\nHere is the technical breakdown for "${query}":\n- Core concept: Memory management and efficient data structures.\n- Quick Tip: Always handle boundary conditions (NULL checks, array index out of bounds) to prevent segmentation faults.`;
-        } else if (query.includes('signal') || query.includes('thermodynamics') || query.includes('circuit') || query.includes('shear') || query.includes('voltage')) {
-            response = `✨ [Gemini Engineering Expert]\nAnalysis for "${query}":\n- Branch Principles: Apply fundamental laws (KVL/KCL, First Law of Thermodynamics, Maxwell's Equations).\n- Study Tip: Solve at least 3 numerical derivations daily to secure top marks in your semester exams.`;
-        } else if (query.includes('resume') || query.includes('job') || query.includes('interview') || query.includes('career')) {
-            response = `✨ [Gemini Career Advisor]\nFor "${query}":\n- Highlight your hands-on projects, GitHub repository links, and core technical skills (DSA, DBMS, system design).\n- Tailor your resume keywords specifically to the job description you are applying for.`;
-        } else if (query.includes('math') || query.includes('calculus') || query.includes('integral') || query.includes('derivative')) {
-            response = `✨ [Gemini Mathematics AI]\nRegarding "${query}":\n- Break down complex integration/differentiation into standard formulas (integration by parts, substitution).\n- Practice step-by-step problem statements to avoid calculation errors.`;
-        } else {
-            response = `✨ [Gemini Universal AI Assistant]\nI processed your query: "${query}".\n- As your all-purpose AI coach, I recommend structuring your daily study goals into manageable blocks.\n- Feel free to ask specific coding syntax, engineering derivations, essays, or general knowledge questions anytime!`;
-        }
-
-        term.innerText = response;
-    }
-
-    window.onload = function() {
-        loadState();
-    };
-</script>
-</body>
-</html>
+    const syllabusMap = {
+        CSE: {
