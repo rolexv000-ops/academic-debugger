@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Debugger (CGPA Optimizer)</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 500px; width: 100%; }
+        h1 { font-size: 1.8rem; text-align: center; color: var(--primary); margin-bottom: 5px; }
+        .subtitle { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        h3 { margin-top: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.4; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; width: 100%; transition: opacity 0.2s; }
+        button:hover { opacity: 0.9; }
+        .btn-danger { background: var(--danger); }
+        .timer { font-size: 2.2rem; font-weight: bold; text-align: center; color: #38bdf8; margin: 15px 0; font-family: monospace; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+        .checkbox-label { display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; color: var(--text-main); cursor: pointer; }
+        .checkbox-label input { margin-top: 3px; }
+        .alert-box { background: #1e1b4b; border: 1px solid #4338ca; padding: 12px; border-radius: 8px; font-size: 0.9rem; display: none; margin-top: 15px; border-left: 4px solid var(--primary); }
+        .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .input-row label { font-size: 0.85rem; color: var(--text-main); font-weight: 500; }
+        .input-row input { background: #0f172a; border: 1px solid var(--border); color: white; padding: 8px; border-radius: 6px; font-size: 0.9rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🤖 Academic Debugger</h1>
+    <div class="subtitle">5-Step CGPA Protection System</div>
+
+    <!-- STEP 1: EMPATHIZE -->
+    <div class="card">
+        <h3>🧠 1. Mindset Audit</h3>
+        <p>Feeling overwhelmed or tempted to scroll your phone? Let's fix the avoidance anxiety.</p>
+        <button onclick="triggerAudit()">Audit My Mindset</button>
+        <div id="auditResult" class="alert-box"></div>
+    </div>
+
+    <!-- STEP 2 & 3: BUG ISOLATION & STRATEGY -->
+    <div class="card">
+        <h3>🔍 2 & 3. Isolate the Grade Leaks</h3>
+        <p>Select what went wrong this week to generate your custom engine fix:</p>
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="bug1"> Passively reading code line-by-line</label>
+            <label class="checkbox-label"><input type="checkbox" id="bug2"> Completely ignoring high-credit non-CSE courses</label>
+            <label class="checkbox-label"><input type="checkbox" id="bug3"> Wasting hours stuck on minor syntax errors</label>
+        </div>
+        <button onclick="generateStrategy()">Generate Engine Fix</button>
+        <div id="strategyResult" class="alert-box" style="background: #064e3b; border-color: #047857; border-left-color: var(--success);"></div>
+    </div>
+
+    <!-- EXAM & ASSIGNMENT ROADMAP -->
+    <div class="card" style="border-color: #4f46e5;">
+        <h3 style="color: #6366f1;">📊 Academic Logs & Roadmap</h3>
+        <p>Track your assignments, mid-terms, and target semester metrics below:</p>
+        
+        <div class="input-row">
+            <label for="assignDue">📅 Next Assignment Deadline Details</label>
+            <input type="text" id="assignDue" placeholder="e.g., C Pointers Lab - Due Friday">
+        </div>
+
+        <div class="grid-2">
+            <div class="input-row">
+                <label for="midMarks">💯 Mid-Exam Score (%)</label>
+                <input type="number" id="midMarks" placeholder="e.g., 78" min="0" max="100">
+            </div>
+            <div class="input-row">
+                <label for="semTarget">🎯 Sem Target GPA</label>
+                <input type="number" id="semTarget" placeholder="e.g., 8.5" step="0.1" min="0" max="10">
+            </div>
+        </div>
+
+        <button onclick="saveAcademicLogs()" style="background: #4f46e5;">Save & Process Roadmap</button>
+        <div id="trackerResult" class="alert-box" style="background: #1e1b4b; border-color: #4f46e5; border-left-color: #6366f1;"></div>
+    </div>
+
+    <!-- STEP 4: PROTOTYPE SPRINT TIMERS -->
+    <div class="card">
+        <h3>🛠️ 4. 7-Day Sprint Tracker</h3>
+        <p>Run your 45-minute daily handwritten logic compilation loop.</p>
+        <div class="timer" id="sprintDisplay">45:00</div>
+        <button onclick="startSprint()">Start Pen & Paper Sprint</button>
+
+        <p style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">Stuck on a compile screen? Activate the 15-minute escape loop immediately.</p>
+        <div class="timer" id="breakDisplay" style="color: var(--danger);">15:00</div>
+        <button class="btn-danger" onclick="startBreak()">Trigger 15-Min Reset Rule</button>
+    </div>
+
+    <!-- STEP 5: REFINE -->
+    <div class="card">
+        <h3>🔄 5. Sunday System Patch</h3>
+        <p>Is your workspace operating efficiently?</p>
+        <button onclick="triggerPatch()" style="background: transparent; border: 1px solid var(--border); color: var(--text-main);">Run Weekly Review</button>
+        <div id="patchResult" class="alert-box" style="background: #3f1d1d; border-color: #7f1d1d; border-left-color: var(--danger);"></div>
+    </div>
+</div>
+
+<script>
+    let timerInterval;
+
+    function startCountdown(duration, displayId, completionMsg) {
+        clearInterval(timerInterval);
+        let timer = duration, minutes, seconds;
+        const display = document.getElementById(displayId);
+        timerInterval = setInterval(() => {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+            display.textContent = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+            if (--timer < 0) {
+                clearInterval(timerInterval);
+                alert(completionMsg);
+            }
+        }, 1000);
+    }
+
+    function startSprint() { startCountdown(2700, 'sprintDisplay', '🎉 Sprint Complete! Excellent logical architecture built.'); }
+    function startBreak() { startCountdown(900, 'breakDisplay', '⏱️ Brain loop reset complete! Return to code with a fresh configuration.'); }
+
+    function triggerAudit() {
+        const div = document.getElementById('auditResult');
+        div.style.display = 'block';
+        div.innerHTML = "<strong>System Diagnostics:</strong> Avoidance anxiety detected. You are not lazy; you are protecting yourself from a complex task. Take a deep breath and commit to just 5 minutes.";
+    }
+
+    function generateStrategy() {
+        const div = document.getElementById('strategyResult');
+        let suggestions = [];
+        if(document.getElementById('bug1').checked) suggestions.push("💡 Use <strong>Pen & Paper Coding</strong>. Map program architecture before touching a key.");
+        if(document.getElementById('bug2').checked) suggestions.push("💡 Reverse-engineer 5 past exam papers to find repeating patterns in math.");
+        if(document.getElementById('bug3').checked) suggestions.push("💡 Enforce the 15-minute rule: if stuck, catalog the log error and close the terminal.");
+        
+        div.style.display = 'block';
+        div.innerHTML = suggestions.length > 0 ? suggestions.join("<br><br>") : "Select a bug above to render optimization patches.";
+    }
+
+    function saveAcademicLogs() {
+        const assign = document.getElementById('assignDue').value || "None logged";
+        const mid = document.getElementById('midMarks').value;
+        const target = document.getElementById('semTarget').value || "8.5";
+        const div = document.getElementById('trackerResult');
+        
+        localStorage.setItem('assign', assign);
+        localStorage.setItem('mid', mid);
+        localStorage.setItem('target', target);
+
+        let logicAnalysis = "";
+        if (mid && mid < 75) {
+            logicAnalysis = `<br><br>⚠️ <strong>Mid-Term Notice:</strong> Your score of ${mid}% indicates a weak internal foundation. To protect your target of ${target} GPA, you must lock down 95%+ attendance and maximize upcoming assignment marks.`;
+        } else if (mid) {
+            logicAnalysis = `<br><br>🚀 <strong>Status Nominal:</strong> Your mid-term parameters align with your ${target} GPA framework. Maintain standard routine tasks.`;
+        }
+
+        div.style.display = 'block';
+        div.innerHTML = `<strong>Data Logged Successfully!</strong><br>📌 Upcoming: ${assign}<br>🎯 Goal: ${target} CGPA Target Matrix.${logicAnalysis}`;
+    }
+
+    window.onload = function() {
+        if(localStorage.getItem('assign')) document.getElementById('assignDue').value = localStorage.getItem('assign');
+        if(localStorage.getItem('mid')) document.getElementById('midMarks').value = localStorage.getItem('mid');
+    }
+     
+</script>
+</body>
+</html>
